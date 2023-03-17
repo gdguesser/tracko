@@ -11,7 +11,7 @@ import (
 func main() {
 	var lastWindowTitle string
 	for {
-		activeWindowTitle, err := getActiveWindowTitle()
+		activeWindowTitle, err := getActiveApplicationName()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -25,13 +25,12 @@ func main() {
 	}
 }
 
-func getActiveWindowTitle() (string, error) {
-	cmd := exec.Command("osascript", "-e", `tell application "System Events" to tell process (name of first application process whose frontmost is true) to get name of window 1`)
+func getActiveApplicationName() (string, error) {
+	script := `tell application "System Events" to get name of first application process whose frontmost is true`
+	cmd := exec.Command("osascript", "-e", script)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
 	}
-
-	title := strings.TrimSpace(string(output))
-	return title, nil
+	return strings.TrimSpace(string(output)), nil
 }
