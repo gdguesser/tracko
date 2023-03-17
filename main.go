@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -14,6 +16,23 @@ func main() {
 	var lastWindowName string
 	var lastSwitchTime time.Time
 
+	// Create a CSV file to store the window activity data
+	file, err := os.Create("window_activity.csv")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Write the header row to the CSV file
+	err = writer.Write([]string{"Application Name", "Time Spent"})
+	if err != nil {
+		panic(err)
+	}
+
+	// Continuously update the CSV file with the latest data
 	for {
 		// Get the name of the currently active window
 		activeWindowName, err := getActiveApplicationName()
@@ -27,11 +46,37 @@ func main() {
 			if lastWindowName != "" {
 				duration := time.Since(lastSwitchTime)
 				windowTimes[lastWindowName] += duration
-				fmt.Printf("Time spent on %s: %s\n", lastWindowName, formatDuration(windowTimes[lastWindowName]))
+				fmt.Printf("Time spent on %s: %s\n", lastWindowName, windowTimes[lastWindowName])
 			}
 			lastWindowName = activeWindowName
 			lastSwitchTime = time.Now()
 			fmt.Printf("Active window: %s\n", activeWindowName)
+		}
+
+		// Write the window activity data to the CSV file every 5 minutes
+		if time.Now().Sub(lastSwitchTime) >= 5*time.Minute {
+			// Clear the CSV file before writing the latest data to avoid duplicates
+			file.Truncate(0)
+			file.Seek(0, 0)
+
+			// Write the header row to the CSV file
+			err = writer.Write([]string{"Application Name", "Time Spent"})
+			if err != nil {
+				panic(err)
+			}
+
+			for name, duration := range windowTimes {
+				record := []string{name, formatDuration(duration)}
+				err = writer.Write(record)
+				if err != nil {
+					panic(err)
+				}
+			}
+
+			writer.Flush()
+
+			fmt.Println("Window activity data written to CSV file")
+			lastSwitchTime = time.Now()
 		}
 
 		time.Sleep(1 * time.Second)
