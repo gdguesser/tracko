@@ -27,7 +27,7 @@ func main() {
 			if lastWindowName != "" {
 				duration := time.Since(lastSwitchTime)
 				windowTimes[lastWindowName] += duration
-				fmt.Printf("Time spent on %s: %s\n", lastWindowName, windowTimes[lastWindowName])
+				fmt.Printf("Time spent on %s: %s\n", lastWindowName, formatDuration(windowTimes[lastWindowName]))
 			}
 			lastWindowName = activeWindowName
 			lastSwitchTime = time.Now()
@@ -46,4 +46,11 @@ func getActiveApplicationName() (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(output)), nil
+}
+
+func formatDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	seconds := int(d.Seconds()) % 60
+	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 }
