@@ -8,6 +8,9 @@ import (
 )
 
 func main() {
+	// Map to store the time spent on each window
+	windowTimes := make(map[string]time.Duration)
+
 	var lastWindowName string
 	var lastSwitchTime time.Time
 
@@ -21,13 +24,14 @@ func main() {
 		// Check if the active window name is the same as the last one
 		if activeWindowName != lastWindowName {
 			// If it's a new window, record the current time and window name
+			if lastWindowName != "" {
+				duration := time.Since(lastSwitchTime)
+				windowTimes[lastWindowName] += duration
+				fmt.Printf("Time spent on %s: %s\n", lastWindowName, windowTimes[lastWindowName])
+			}
 			lastWindowName = activeWindowName
 			lastSwitchTime = time.Now()
 			fmt.Printf("Active window: %s\n", activeWindowName)
-		} else {
-			// If it's the same window, calculate the time spent on it
-			duration := time.Since(lastSwitchTime)
-			fmt.Printf("Time spent on %s: %s\n", activeWindowName, duration)
 		}
 
 		time.Sleep(1 * time.Second)
