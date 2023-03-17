@@ -2,23 +2,32 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
 	"time"
 )
 
 func main() {
-	var lastWindowTitle string
+	var lastWindowName string
+	var lastSwitchTime time.Time
+
 	for {
-		activeWindowTitle, err := getActiveApplicationName()
+		// Get the name of the currently active window
+		activeWindowName, err := getActiveApplicationName()
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
-		if activeWindowTitle != lastWindowTitle {
-			lastWindowTitle = activeWindowTitle
-			fmt.Printf("Active window: %s\n", activeWindowTitle)
+		// Check if the active window name is the same as the last one
+		if activeWindowName != lastWindowName {
+			// If it's a new window, record the current time and window name
+			lastWindowName = activeWindowName
+			lastSwitchTime = time.Now()
+			fmt.Printf("Active window: %s\n", activeWindowName)
+		} else {
+			// If it's the same window, calculate the time spent on it
+			duration := time.Since(lastSwitchTime)
+			fmt.Printf("Time spent on %s: %s\n", activeWindowName, duration)
 		}
 
 		time.Sleep(1 * time.Second)
